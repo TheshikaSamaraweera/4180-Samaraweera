@@ -1,6 +1,5 @@
 pipeline {
     agent any 
-   
     
     stages { 
         stage('SCM Checkout') {
@@ -15,23 +14,21 @@ pipeline {
                 bat 'docker build -t theshikanavod/e-commerce-frontend:%BUILD_NUMBER% .'
             }
         }
-        stage('Login to Docker Hub') {
+        stage('Run') {
             steps {
-                withCredentials([string(credentialsId: 'e-commerce-password', variable: 'mypsswrd')]) {
-   
-               bat'docker login -u theshikanavod -p ${mypsswrd}'
-                }
+                bat '''
+                    docker run -d --name my_container -p 8080:80 theshikanavod/e-commerce-frontend:%BUILD_NUMBER%
+                '''
             }
         }
-        stage('Push Image') {
+        stage('Verify') {
             steps {
-                bat 'docker push theshikanavod/e-commerce-frontend:%BUILD_NUMBER%'
+                bat '''
+                    docker ps
+                    docker logs my_container
+                    
+                '''
             }
-        }
-    }
-    post {
-        always {
-            bat 'docker logout'
         }
     }
 }
